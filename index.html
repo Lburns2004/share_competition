@@ -6,92 +6,154 @@
 <title>Share Race 🏁</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <style>
-:root{--bg:#0b1020;--card:#141b34;--card2:#1b2445;--line:#27325c;--text:#eef1ff;--mute:#8e9bc9;--up:#2ee6a6;--down:#ff5d7a;--gold:#ffd166}
+:root{--bg:#0a0f1f;--card:#131a33;--card2:#182142;--line:#ffffff14;--text:#eef1ff;--mute:#8d9ac8;--up:#2ee6a6;--down:#ff5d7a;--gold:#ffd166;--accent:#5b7cff;--spring:cubic-bezier(.34,1.56,.64,1)}
 *{box-sizing:border-box}
-body{margin:0;font-family:Inter,Segoe UI,system-ui,sans-serif;background:radial-gradient(1200px 600px at 10% -10%,#1d2a5e55,transparent),var(--bg);color:var(--text)}
-.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 60px}
-header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:18px}
-h1{margin:0;font-size:30px;letter-spacing:-.5px} h1 small{display:block;font-size:13px;font-weight:500;color:var(--mute);letter-spacing:0;margin-top:4px}
-h2{margin:34px 0 12px;font-size:18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap} h2 small{color:var(--mute);font-weight:500;font-size:12px}
-.status{font-size:12px;color:var(--mute);text-align:right;line-height:1.6}
+html{background:var(--bg);scroll-behavior:smooth}
+body{margin:0;font-family:Inter,"Segoe UI",system-ui,sans-serif;color:var(--text);font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;
+  background:radial-gradient(620px 420px at 14% 8%,#3b4cff30,transparent),radial-gradient(520px 380px at 88% 28%,#2ee6a61c,transparent),radial-gradient(560px 420px at 50% 100%,#ff4d6d18,transparent);
+  animation:drift 24s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translate3d(-3%,4%,0) scale(1.08)}}
+.wrap{max-width:1160px;margin:0 auto;padding:28px 18px 80px;position:relative}
+
+/* header */
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:26px}
+header>*{animation:drop .9s var(--spring) both}
+header>.status{animation-delay:.12s}
+@keyframes drop{from{opacity:0;translate:0 -16px}to{opacity:1;translate:0 0}}
+h1{margin:0;font-size:32px;letter-spacing:-.6px}
+h1 small{display:block;font-size:13px;font-weight:500;color:var(--mute);letter-spacing:0;margin-top:5px}
+.status{font-size:12px;color:var(--mute);text-align:right;line-height:1.7}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--up);margin-right:6px;box-shadow:0 0 8px var(--up);animation:p 2s infinite}
 .dot.err{background:var(--down);box-shadow:0 0 8px var(--down)}
 @keyframes p{50%{opacity:.35}}
-.grid{display:grid;gap:14px}.g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}.g4{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
-.card{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:16px;padding:16px;position:relative;overflow:hidden}
-.card.lead{border-color:var(--gold);box-shadow:0 0 0 1px #ffd16655,0 8px 30px #ffd16618}
+
+/* sections + headings */
+section{margin-top:46px}
+section:first-of-type{margin-top:0}
+h2{margin:0 0 14px;font-size:18px;font-weight:700;letter-spacing:-.2px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+h2::before{content:"";align-self:center;width:4px;height:18px;border-radius:4px;background:linear-gradient(var(--accent),#9a6bff)}
+h2 small{color:var(--mute);font-weight:500;font-size:12px;letter-spacing:0}
+
+/* cards + grids */
+.grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.card{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:18px;padding:18px;position:relative;overflow:hidden;box-shadow:0 14px 34px -22px #000}
+.card.lead{border-color:#ffd16688;box-shadow:0 0 0 1px #ffd16633,0 14px 40px -18px #ffd16655;animation:glow 3.4s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:0 0 0 1px #ffd16655,0 14px 48px -14px #ffd16690}}
+.hero .card:hover,#cards .card:hover,#value .card:hover{transform:translateY(-4px);border-color:#ffffff30}
 .lbl{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);display:flex;justify-content:space-between;align-items:center;gap:8px}
-.chip{font-size:10px;padding:3px 8px;border-radius:99px;background:#ffffff14;letter-spacing:.8px;white-space:nowrap}
-.chip.live{background:#2ee6a622;color:var(--up)}.chip.final{background:#ffd16622;color:var(--gold)}
+.chip{font-size:10px;padding:3px 9px;border-radius:99px;background:#ffffff14;letter-spacing:.8px;white-space:nowrap}
+.chip.live{background:#2ee6a620;color:var(--up)}
+.chip.live::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--up);margin-right:6px;animation:p 1.6s infinite}
+.chip.final{background:#ffd16620;color:var(--gold)}
 .big{font-size:24px;font-weight:700;margin:8px 0 2px}.sub{color:var(--mute);font-size:13px}
 .up{color:var(--up)}.down{color:var(--down)}.flat{color:var(--mute)}
-.name{display:flex;align-items:center;gap:8px;font-weight:700}.sw{width:10px;height:10px;border-radius:3px}
-.price{font-size:28px;font-weight:800;margin:10px 0 0}.chg{font-size:14px;font-weight:600}
-.spark{width:100%;height:46px;margin-top:8px;display:block}
-.tag{font-size:10px;color:var(--mute);border:1px solid var(--line);border-radius:6px;padding:1px 6px;margin-left:6px}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
-td{padding:11px 10px;border-bottom:1px solid #ffffff0d}
-td.n,th.n{text-align:right}.pts{font-size:22px;font-weight:800}
-.scroll{overflow-x:auto}
-.bar{height:10px;border-radius:6px;background:#ffffff10;position:relative;margin:10px 0 8px}
-.bar i{position:absolute;top:0;bottom:0;border-radius:6px}.bar b{position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:#ffffff55}
-.split{display:flex;justify-content:space-between;font-size:12px;color:var(--mute);margin-top:4px}
-.ctrl{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center}
-button{font:inherit;font-size:13px;color:var(--text);background:#ffffff0f;border:1px solid var(--line);border-radius:9px;padding:7px 13px;cursor:pointer}
-button.on{background:#4c6fff;border-color:#4c6fff}
-button.leg{display:flex;gap:6px;align-items:center}button.leg.off{opacity:.35}
-.sp{flex:1}.chartbox{height:420px;position:relative}
-.note{font-size:12px;color:var(--mute);margin-top:10px;line-height:1.6}
-.errbar{display:none;background:#ff5d7a22;border:1px solid var(--down);color:#ffc2cc;padding:10px 14px;border-radius:10px;margin-bottom:14px;font-size:13px}
+.name{display:flex;align-items:center;gap:8px;font-weight:700}.sw{width:10px;height:10px;border-radius:3px;flex:none}
+.price{font-size:28px;font-weight:800;margin:12px 0 0}.chg{font-size:14px;font-weight:600;margin-top:2px}
+.spark{width:100%;height:46px;margin-top:10px;display:block}
+.tag{font-size:10px;color:var(--mute);border:1px solid var(--line);border-radius:6px;padding:1px 6px;margin-left:6px;font-weight:500}
+
+/* hero: today big, yesterday top-right, this week under it */
 .hero{display:grid;grid-template-columns:1.7fr 1fr;grid-template-rows:auto 1fr;gap:14px}
-.hero .today{grid-row:1 / span 2;padding:24px}
+.hero .today{grid-row:1 / span 2;padding:26px}
 .hero .prev{grid-column:2;grid-row:1}
 .hero .week{grid-column:2;grid-row:2}
 .hero .prev .big,.hero .week .big{font-size:20px}
 .today .big{font-size:42px;line-height:1.1;margin:14px 0 6px}.today .sub{font-size:15px}
 .today .lbl{font-size:12px}
-.rank{margin-top:18px;border-top:1px solid #ffffff14;padding-top:10px}
-.rank div{display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:15px}
+.rank{margin-top:18px;border-top:1px solid var(--line);padding-top:8px}
+.rank div{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:15px}
 .rank div+div{border-top:1px solid #ffffff0a}
 .rank .name{font-weight:600}
+
+/* tables */
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;font-weight:600}
+td{padding:12px 10px;border-bottom:1px solid #ffffff0a;transition:background .2s}
+tr:last-child td{border-bottom:0}
+tr:hover td{background:#ffffff08}
+td.n,th.n{text-align:right}.pts{font-size:22px;font-weight:800}
+.scroll{overflow-x:auto}
+.bar{height:10px;border-radius:6px;background:#ffffff10;position:relative;margin:12px 0 10px}
+.bar i{position:absolute;top:0;bottom:0;border-radius:6px;transition:width 1.1s var(--spring) .35s}
+.bar b{position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:#ffffff55}
+.split{display:flex;justify-content:space-between;font-size:12px;color:var(--mute);margin-top:5px}
+
+/* chart controls */
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center}
+button{font:inherit;font-size:13px;color:var(--text);background:#ffffff0f;border:1px solid var(--line);border-radius:10px;padding:7px 14px;cursor:pointer;transition:background .2s,transform .15s,border-color .2s}
+button:hover{background:#ffffff1c}button:active{transform:scale(.96)}
+button.on{background:var(--accent);border-color:var(--accent)}
+button.leg{display:flex;gap:6px;align-items:center}button.leg.off{opacity:.35}
+.sp{flex:1}.chartbox{height:420px;position:relative}
+.note{font-size:12px;color:var(--mute);margin-top:12px;line-height:1.6}
+.errbar{display:none;background:#ff5d7a22;border:1px solid var(--down);color:#ffc2cc;padding:10px 14px;border-radius:12px;margin-bottom:16px;font-size:13px}
+
+/* scroll reveal: things bob in with a little overshoot, and ease out again when they leave the screen */
+.reveal h2,.reveal .card{transition:opacity .55s ease,translate .85s var(--spring),scale .85s var(--spring),transform .25s ease,border-color .25s}
+.reveal.in h2,.reveal.in .card{transition-delay:calc(var(--i,0)*75ms),calc(var(--i,0)*75ms),calc(var(--i,0)*75ms),0s,0s}
+.reveal:not(.in) h2,.reveal:not(.in) .card{opacity:0;translate:0 38px;scale:.93}
+.reveal tr{transition:opacity .5s ease,translate .7s cubic-bezier(.22,1,.36,1)}
+.reveal.in tr{transition-delay:calc(var(--i,0)*45ms + 350ms),calc(var(--i,0)*45ms + 350ms)}
+.reveal:not(.in) tr{opacity:0;translate:-22px 0}
+.reveal:not(.in) .bar i{width:0!important}
+
 @media(max-width:760px){.hero{grid-template-columns:1fr;grid-template-rows:auto}.hero .today,.hero .week,.hero .prev{grid-column:1;grid-row:auto}.today .big{font-size:32px}}
-@media(max-width:600px){h1{font-size:24px}.price{font-size:24px}.chartbox{height:320px}}
+@media(max-width:600px){h1{font-size:25px}.price{font-size:24px}.chartbox{height:320px}section{margin-top:38px}}
+@media(prefers-reduced-motion:reduce){
+  *,*::before{animation:none!important;transition:none!important}
+  .reveal:not(.in) h2,.reveal:not(.in) .card,.reveal:not(.in) tr{opacity:1!important;translate:none!important;scale:none!important}
+  .reveal:not(.in) .bar i{width:revert!important}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <h1>Share Race 🏁<small>WSP · Jacobs · Veolia · Colliers &nbsp;|&nbsp; all prices in £</small></h1>
-    <div class="status"><span class="dot" id="dot"></span><span id="upd">Loading…</span><br><span id="clock"></span><br><span style="opacity:.45">layout v5</span></div>
+    <div class="status"><span class="dot" id="dot"></span><span id="upd">Loading…</span><br><span id="clock"></span></div>
   </header>
   <div class="errbar" id="err"></div>
 
-  <div class="hero" id="hero"></div>
+  <section class="reveal">
+    <div class="hero" id="hero"></div>
+  </section>
 
-  <h2>Live prices <small>change vs previous close, in £</small></h2>
-  <div class="grid g4" id="cards"></div>
+  <section class="reveal">
+    <h2>Live prices <small>change vs previous close, in £</small></h2>
+    <div class="grid g4" id="cards"></div>
+  </section>
 
-  <h2>🏆 Leaderboard <small id="rules"></small></h2>
-  <div class="card scroll"><table id="board"></table></div>
+  <section class="reveal">
+    <h2>Leaderboard <small id="rules"></small></h2>
+    <div class="card scroll"><table id="board"></table></div>
+  </section>
 
-  <h2>Weekly results <small>Friday close vs previous Friday close · % change in £</small></h2>
-  <div class="card scroll"><table id="weeks"></table></div>
+  <section class="reveal">
+    <h2>Weekly results <small>Friday close vs previous Friday close · % change in £</small></h2>
+    <div class="card scroll"><table id="weeks"></table></div>
+  </section>
 
-  <h2>Daily results <small>last 10 sessions · % change in £</small></h2>
-  <div class="card scroll"><table id="days"></table><div class="note" id="moreDays"></div></div>
+  <section class="reveal">
+    <h2>Daily results <small>last 10 sessions · % change in £</small></h2>
+    <div class="card scroll"><table id="days"></table><div class="note" id="moreDays"></div></div>
+  </section>
 
-  <h2>💷 Value added <small>% change in £ since each person started</small></h2>
-  <div class="grid g4" id="value"></div>
-  <div class="note">Total in £ = share-price move × currency move. Baseline is the last close before the start date, so the start-day move counts. “Currency” is the gain/loss from CAD/USD/EUR moving against £.</div>
+  <section class="reveal">
+    <h2>Value added <small>% change in £ since each person started</small></h2>
+    <div class="grid g4" id="value"></div>
+    <div class="note">Total in £ = share-price move × currency move. Baseline is the last close before the start date, so the start-day move counts. “Currency” is the gain/loss from CAD/USD/EUR moving against £.</div>
+  </section>
 
-  <h2>📈 Charts</h2>
-  <div class="card">
-    <div class="ctrl" id="ranges"></div>
-    <div class="ctrl"><button id="modePct" class="on">% change</button><button id="modeGbp">Price £</button><span class="sp"></span><span id="legend" class="ctrl" style="margin:0"></span></div>
-    <div class="chartbox"><canvas id="chart"></canvas></div>
-    <div class="note" id="chartNote"></div>
-  </div>
+  <section class="reveal" id="s-chart">
+    <h2>Charts</h2>
+    <div class="card">
+      <div class="ctrl" id="ranges"></div>
+      <div class="ctrl"><button id="modePct" class="on">% change</button><button id="modeGbp">Price £</button><span class="sp"></span><span id="legend" class="ctrl" style="margin:0"></span></div>
+      <div class="chartbox"><canvas id="chart"></canvas></div>
+      <div class="note" id="chartNote"></div>
+    </div>
+  </section>
 </div>
 
 <script>
@@ -100,6 +162,7 @@ const API = "https://share-race.mn22lb.workers.dev";
 /* ================================================================== */
 
 const $ = (s) => document.querySelector(s);
+const reduce = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 const fmtGBP = (n) => "£" + n.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmtPct = (n, dp = 2) => (n > 0 ? "+" : "") + n.toFixed(dp) + "%";
 const cls = (n) => (n > 0 ? "up" : n < 0 ? "down" : "flat");
@@ -108,7 +171,7 @@ const fmtShort = (d) => new Date(d + "T12:00:00Z").toLocaleDateString("en-GB", {
 const fmtLong = (d) => new Date(d + "T12:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 const pl = (n, w) => n + " " + w + (n === 1 ? "" : "s");
 
-let S = null, chart = null, range = "1y", mode = "pct", showAllDays = false;
+let S = null, chart = null, range = "1y", mode = "pct", showAllDays = false, revealReady = false;
 const H = {}, hidden = new Set();
 const P = (id) => S.config.players.find((p) => p.id === id);
 const nameOf = (id) => `${P(id).person} (${P(id).company})`;
@@ -176,7 +239,7 @@ function renderCards() {
     const p = P(l.id);
     return `<div class="card">
       <div class="name"><span class="sw" style="background:${p.colour}"></span>${p.person}<span class="sub" style="font-weight:500">· ${p.company}</span></div>
-      <div class="price">${fmtGBP(l.priceGBP)}</div>
+      <div class="price" data-to="${l.priceGBP}" data-k="gbp">${fmtGBP(l.priceGBP)}</div>
       <div class="chg ${cls(l.pct)}">${fmtPct(l.pct)} <span style="font-weight:500">(${l.chg >= 0 ? "+" : "−"}${fmtGBP(Math.abs(l.chg))})</span>
         ${l.open ? '<span class="tag">market open</span>' : '<span class="tag">' + (l.isToday ? "closed" : "last close " + fmtDate(l.barDate)) + "</span>"}</div>
       ${spark(l)}</div>`;
@@ -201,7 +264,7 @@ function renderBoard() {
   $("#board").innerHTML = `<tr><th>#</th><th>Player</th><th class="n">Day wins</th><th class="n">Week wins</th><th class="n">Points</th></tr>` + S.leaderboard.map((b) => {
     const p = P(b.id);
     return `<tr><td>${b.points > 0 ? (medals[b.rank] || b.rank) : "–"}</td><td><span class="name"><span class="sw" style="background:${p.colour}"></span>${p.person} <span class="sub" style="font-weight:500">${p.company}</span></span></td>
-      <td class="n">${b.dayWins}<div class="sub">${b.dayPoints} pts</div></td><td class="n">${b.weekWins}<div class="sub">${b.weekPoints} pts</div></td><td class="n pts">${b.points}</td></tr>`;
+      <td class="n">${b.dayWins}<div class="sub">${b.dayPoints} pts</div></td><td class="n">${b.weekWins}<div class="sub">${b.weekPoints} pts</div></td><td class="n pts" data-to="${b.points}" data-k="int">${b.points}</td></tr>`;
   }).join("");
 
   const th = ids.map((i) => `<th class="n">${P(i).person}</th>`).join("");
@@ -212,7 +275,7 @@ function renderBoard() {
   $("#days").innerHTML = `<tr><th>Date</th><th>Winner</th><th class="n">Pts</th>${th}</tr>` +
     resultRows(days, ids, (d) => `<td>${fmtDate(d.date)}${d.final ? "" : '<span class="tag">live</span>'}</td>`);
   $("#moreDays").innerHTML = S.days.length > 10 ? `<button id="toggleDays">${showAllDays ? "Show fewer" : "Show all " + S.days.length + " days"}</button>` : "";
-  const b = $("#toggleDays"); if (b) b.onclick = () => { showAllDays = !showAllDays; renderBoard(); };
+  const b = $("#toggleDays"); if (b) b.onclick = () => { showAllDays = !showAllDays; renderBoard(); stagger(); };
 }
 
 function renderValue() {
@@ -223,7 +286,7 @@ function renderValue() {
     const bar = v.totalPct >= 0 ? `left:50%;width:${w}%;background:var(--up)` : `right:50%;width:${w}%;background:var(--down)`;
     return `<div class="card"><div class="lbl"><span>#${i + 1}</span><span>since ${fmtLong(v.start)}</span></div>
       <div class="name" style="margin-top:8px"><span class="sw" style="background:${p.colour}"></span>${p.person}<span class="sub" style="font-weight:500">· ${p.company}</span></div>
-      <div class="big ${cls(v.totalPct)}">${fmtPct(v.totalPct)}</div>
+      <div class="big ${cls(v.totalPct)}" data-to="${v.totalPct}" data-k="pct">${fmtPct(v.totalPct)}</div>
       <div class="bar"><b></b><i style="${bar}"></i></div>
       <div class="split"><span>Share price</span><span class="${cls(v.localPct)}">${fmtPct(v.localPct)}</span></div>
       <div class="split"><span>Currency → £</span><span class="${cls(v.fxPct)}">${fmtPct(v.fxPct)}</span></div>
@@ -231,7 +294,55 @@ function renderValue() {
   }).join("");
 }
 
-function renderAll() { renderHero(); renderCards(); renderBoard(); renderValue(); drawLegend(); }
+function renderAll() { renderHero(); renderCards(); renderBoard(); renderValue(); drawLegend(); stagger(); }
+
+/* ------------------------------- animations ------------------------------- */
+// gives each heading / card / row a position number so they pop in one after another
+function stagger() {
+  document.querySelectorAll(".reveal").forEach((s) => {
+    let i = 0;
+    s.querySelectorAll("h2,.card").forEach((el) => el.style.setProperty("--i", Math.min(i++, 8)));
+    s.querySelectorAll("tr").forEach((el, j) => el.style.setProperty("--i", Math.min(j, 14)));
+  });
+}
+
+// numbers count up from zero when their section scrolls into view
+const KIND = { gbp: fmtGBP, pct: (v) => fmtPct(v), int: (v) => String(Math.round(v)) };
+function runCounts(root) {
+  if (reduce) return;
+  root.querySelectorAll("[data-to]").forEach((el) => {
+    const to = parseFloat(el.dataset.to), f = KIND[el.dataset.k] || String;
+    if (!isFinite(to)) return;
+    cancelAnimationFrame(el._raf);
+    const t0 = performance.now(), delay = 250, dur = 1100;
+    const step = (now) => {
+      const p = Math.min(1, Math.max(0, (now - t0 - delay) / dur)), e = 1 - Math.pow(1 - p, 3);
+      el.textContent = f(to * e);
+      if (p < 1) el._raf = requestAnimationFrame(step); else el.textContent = f(to);
+    };
+    el._raf = requestAnimationFrame(step);
+  });
+}
+
+// sections bob in when they scroll into view, and ease back out when they leave
+function initReveal() {
+  revealReady = true;
+  const secs = [...document.querySelectorAll(".reveal")];
+  if (reduce || typeof IntersectionObserver === "undefined") { secs.forEach((s) => s.classList.add("in")); return; }
+  const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+    const s = e.target;
+    if (e.isIntersecting && e.intersectionRatio >= 0.08) {
+      if (!s.classList.contains("in")) {
+        s.classList.add("in");
+        runCounts(s);
+        if (s.id === "s-chart" && chart) { chart.reset(); chart.update(); }
+      }
+    } else if (!e.isIntersecting) s.classList.remove("in");
+  }), { threshold: [0, 0.08], rootMargin: "0px 0px -4% 0px" });
+  secs.forEach((s) => io.observe(s));
+}
+// safety net: never leave the page hidden if something goes wrong
+setTimeout(() => { if (!revealReady) document.querySelectorAll(".reveal").forEach((s) => s.classList.add("in")); }, 4000);
 
 /* --------------------------------- charts ---------------------------------- */
 const RANGE_LABELS = [["1m", "1M"], ["3m", "3M"], ["6m", "6M"], ["1y", "1Y"], ["5y", "5Y"], ["max", "Max"]];
@@ -263,13 +374,14 @@ async function drawChart() {
   chart = new Chart($("#chart"), {
     type: "line", data: { datasets },
     options: {
-      responsive: true, maintainAspectRatio: false, animation: false, parsing: false, interaction: { mode: "nearest", axis: "x", intersect: false },
+      responsive: true, maintainAspectRatio: false, animation: reduce ? false : { duration: 900, easing: "easeOutQuart" },
+      parsing: false, interaction: { mode: "nearest", axis: "x", intersect: false },
       plugins: { legend: { display: false },
         tooltip: { callbacks: { title: (i) => new Date(i[0].parsed.x).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
           label: (c) => c.dataset.label + ": " + (mode === "pct" ? fmtPct(c.parsed.y) : fmtGBP(c.parsed.y)) } } },
       scales: {
-        x: { type: "linear", ticks: { color: "#8e9bc9", maxTicksLimit: 7, callback: dfmt }, grid: { color: "#ffffff0d" } },
-        y: { ticks: { color: "#8e9bc9", callback: (v) => (mode === "pct" ? v.toFixed(0) + "%" : "£" + v) }, grid: { color: "#ffffff14" } },
+        x: { type: "linear", ticks: { color: "#8d9ac8", maxTicksLimit: 7, callback: dfmt }, grid: { color: "#ffffff0d" } },
+        y: { ticks: { color: "#8d9ac8", callback: (v) => (mode === "pct" ? v.toFixed(0) + "%" : "£" + v) }, grid: { color: "#ffffff14" } },
       },
     },
   });
@@ -286,7 +398,7 @@ function tickClock() {
 setInterval(tickClock, 1000); tickClock();
 
 (async () => {
-  await loadState(); drawChart();
+  try { await loadState(); } finally { setTimeout(initReveal, 80); }
   setInterval(() => { if (document.visibilityState === "visible") loadState(); }, 30000);
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") loadState(); });
 })();
