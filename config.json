@@ -1,0 +1,14 @@
+{
+  "title": "Engineers' Share Showdown",
+  "timezone": "Europe/London",
+  "finalise_after": "21:30",
+  "points_start": "2026-09-01",
+  "points": { "normal": 1, "week_close": 2 },
+  "scoring_basis": "gbp",
+  "players": [
+    { "name": "Louie",  "stock": "WSP",     "symbol": "WSP.TO", "currency": "CAD", "start": "2026-09-01", "color": "#ff4d6d" },
+    { "name": "Dan",    "stock": "Jacobs",  "symbol": "J",      "currency": "USD", "start": "2026-09-01", "color": "#4f8cff" },
+    { "name": "Samuel", "stock": "Veolia",  "symbol": "VIE.PA", "currency": "EUR", "start": "2026-09-01", "color": "#2ecc71" },
+    { "name": "Alex",   "stock": "Colliers","symbol": "CIGI",   "currency": "USD", "start": "2025-09-01", "color": "#ffb020" }
+  ]
+}
