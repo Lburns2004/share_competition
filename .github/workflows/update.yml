@@ -3,7 +3,7 @@ name: Update share tracker
 on:
   schedule:
     # Every 5 min, Mon-Fri, 07:00-22:55 UTC. Covers Paris open (08:00 UK) to the 21:30 UK
-    # scoring run in both GMT and BST. The script decides if anything actually needs doing.
+    # scoring run in both GMT and BST. The script makes NO requests when markets are shut.
     - cron: '*/5 7-22 * * 1-5'
   workflow_dispatch:
     inputs:
@@ -30,35 +30,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Yahoo returns HTTP 429 to plain Python clients. curl_cffi sends a real Chrome fingerprint.
+      - name: Install browser-impersonating HTTP client
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install --quiet --disable-pip-version-check curl_cffi \
+            || echo "::warning::curl_cffi install failed - falling back to plain urllib (Yahoo may block it)"
+
       - name: Fetch prices, score the day, build site
         id: run
         env:
           FORCE: ${{ github.event.inputs.force == 'true' && '1' || '0' }}
-        run: python3 scripts/update.py
-
-      - name: Save leaderboard + history back to the repo
-        if: steps.run.outputs.committed == 'true'
-        run: |
-          git config user.name  "share-tracker-bot"
-          git config user.email "share-tracker-bot@users.noreply.github.com"
-          git add data/leaderboard.json data/history.json
-          git commit -m "Update leaderboard $(date -u +%F)" || exit 0
-          git pull --rebase origin "${GITHUB_REF_NAME}"
-          git push
-
-      - name: Upload site
-        if: steps.run.outputs.deploy == 'true'
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
-
-  deploy:
-    needs: build
-    if: needs.build.outputs.deploy == 'true'
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          # Manual runs fail RED with the real error; scheduled runs stay quiet and retry in 5 min.
+          SOFT_FAIL: ${{ github.event_name == 'workflow_dispatch' && '0' || '1' }}
+          # Optional: set a repo variable called YAHOO_HOSTS to route via your own proxy.
+          YAHOO_HOSTS: ${{ vars.YAHOO_HOSTS }}
+        run: .venv/bin/python scripts/update.py
