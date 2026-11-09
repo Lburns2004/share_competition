@@ -12,26 +12,25 @@ body{margin:0;font-family:Inter,Segoe UI,system-ui,sans-serif;background:radial-
 .wrap{max-width:1180px;margin:0 auto;padding:20px 16px 60px}
 header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:18px}
 h1{margin:0;font-size:30px;letter-spacing:-.5px} h1 small{display:block;font-size:13px;font-weight:500;color:var(--mute);letter-spacing:0;margin-top:4px}
-h2{margin:34px 0 12px;font-size:18px;display:flex;align-items:center;gap:8px} h2 small{color:var(--mute);font-weight:500;font-size:12px}
+h2{margin:34px 0 12px;font-size:18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap} h2 small{color:var(--mute);font-weight:500;font-size:12px}
 .status{font-size:12px;color:var(--mute);text-align:right;line-height:1.6}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--up);margin-right:6px;box-shadow:0 0 8px var(--up);animation:p 2s infinite}
 .dot.err{background:var(--down);box-shadow:0 0 8px var(--down)}
 @keyframes p{50%{opacity:.35}}
-.grid{display:grid;gap:14px}.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}.g4{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.grid{display:grid;gap:14px}.g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}.g4{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
 .card{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:16px;padding:16px;position:relative;overflow:hidden}
 .card.lead{border-color:var(--gold);box-shadow:0 0 0 1px #ffd16655,0 8px 30px #ffd16618}
-.lbl{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);display:flex;justify-content:space-between;align-items:center}
-.chip{font-size:10px;padding:3px 8px;border-radius:99px;background:#ffffff14;letter-spacing:.8px}
+.lbl{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.chip{font-size:10px;padding:3px 8px;border-radius:99px;background:#ffffff14;letter-spacing:.8px;white-space:nowrap}
 .chip.live{background:#2ee6a622;color:var(--up)}.chip.final{background:#ffd16622;color:var(--gold)}
 .big{font-size:24px;font-weight:700;margin:8px 0 2px}.sub{color:var(--mute);font-size:13px}
 .up{color:var(--up)}.down{color:var(--down)}.flat{color:var(--mute)}
 .name{display:flex;align-items:center;gap:8px;font-weight:700}.sw{width:10px;height:10px;border-radius:3px}
 .price{font-size:28px;font-weight:800;margin:10px 0 0}.chg{font-size:14px;font-weight:600}
 .spark{width:100%;height:46px;margin-top:8px;display:block}
-.badge{position:absolute;top:12px;right:14px;font-size:20px}
 .tag{font-size:10px;color:var(--mute);border:1px solid var(--line);border-radius:6px;padding:1px 6px;margin-left:6px}
 table{width:100%;border-collapse:collapse;font-size:14px}
-th{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
 td{padding:11px 10px;border-bottom:1px solid #ffffff0d}
 td.n,th.n{text-align:right}.pts{font-size:22px;font-weight:800}
 .scroll{overflow-x:auto}
@@ -63,7 +62,11 @@ button.leg{display:flex;gap:6px;align-items:center}button.leg.off{opacity:.35}
 
   <h2>🏆 Leaderboard <small id="rules"></small></h2>
   <div class="card scroll"><table id="board"></table></div>
-  <h2>Daily results <small>last 10 sessions</small></h2>
+
+  <h2>Weekly results <small>Friday close vs previous Friday close · % change in £</small></h2>
+  <div class="card scroll"><table id="weeks"></table></div>
+
+  <h2>Daily results <small>last 10 sessions · % change in £</small></h2>
   <div class="card scroll"><table id="days"></table><div class="note" id="moreDays"></div></div>
 
   <h2>💷 Value added <small>% change in £ since each person started</small></h2>
@@ -89,7 +92,9 @@ const fmtGBP = (n) => "£" + n.toLocaleString("en-GB", { minimumFractionDigits: 
 const fmtPct = (n, dp = 2) => (n > 0 ? "+" : "") + n.toFixed(dp) + "%";
 const cls = (n) => (n > 0 ? "up" : n < 0 ? "down" : "flat");
 const fmtDate = (d) => new Date(d + "T12:00:00Z").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+const fmtShort = (d) => new Date(d + "T12:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
 const fmtLong = (d) => new Date(d + "T12:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+const pl = (n, w) => n + " " + w + (n === 1 ? "" : "s");
 
 let S = null, chart = null, range = "1y", mode = "pct", showAllDays = false;
 const H = {}, hidden = new Set();
@@ -129,21 +134,29 @@ function spark(live) {
   return `<svg class="spark" viewBox="0 0 ${W} ${Ht}" preserveAspectRatio="none"><line x1="0" x2="${W}" y1="${y(live.prevGBP)}" y2="${y(live.prevGBP)}" stroke="#ffffff40" stroke-dasharray="3 3"/><polyline fill="none" stroke="${col}" stroke-width="1.8" vector-effect="non-scaling-stroke" points="${pts}"/></svg>`;
 }
 
-function renderHero() {
-  const t = S.today, pv = S.previous;
-  const lbl = { live: ["LIVE", "live"], final: ["FINAL", "final"], waiting: ["WAITING", ""], closed: ["CLOSED", ""] }[t.status];
+function winnerCard(title, x, pts, noun) {
+  // x = {status, date/monday, rows, winners}
+  const chip = { live: ["LIVE", "live"], final: ["FINAL", "final"], waiting: ["WAITING", ""], closed: ["CLOSED", ""] }[x.status];
   let body;
-  if (t.status === "live" || t.status === "final") {
-    const w = t.winners.map(nameOf).join(" & ");
-    body = `<div class="big">${t.status === "live" ? "👑 " : "🏆 "}${w}</div><div class="sub"><span class="${cls(t.rows[0].pct)}">${fmtPct(t.rows[0].pct)}</span> in £ · ${t.status === "live" ? `leading now – ${S.config.points === t.pts ? "1 point" : t.pts + " points"} awarded at ${S.config.closeHHMM} UK` : `+${t.pts} point${t.pts > 1 ? "s" : ""} awarded${t.winners.length > 1 ? " each (tie)" : ""}`}</div>`;
-  } else if (t.status === "waiting") {
-    body = `<div class="big">Waiting for markets</div><div class="sub">Not enough markets open yet to rank today.</div>`;
-  } else body = `<div class="big">Markets closed</div><div class="sub">No trading today – next points at the next close.</div>`;
-  const left = `<div class="card ${t.status === "live" ? "lead" : ""}"><div class="lbl"><span>Today · ${fmtDate(t.date)}</span><span class="chip ${lbl[1]}">${lbl[0]}</span></div>${body}</div>`;
-  const right = pv
-    ? `<div class="card"><div class="lbl"><span>Yesterday's winner · ${fmtDate(pv.date)}</span><span class="chip final">+${pv.pts} PT${pv.pts > 1 ? "S" : ""}</span></div><div class="big">🏆 ${pv.winners.map(nameOf).join(" & ")}</div><div class="sub"><span class="${cls(pv.rows[0].pct)}">${fmtPct(pv.rows[0].pct)}</span> in £${pv.winners.length > 1 ? " · tie, points shared" : ""}</div></div>`
+  if (x.status === "live" || x.status === "final") {
+    const w = x.winners.map(nameOf).join(" & "), live = x.status === "live";
+    const tie = x.winners.length > 1 ? " each (tie)" : "";
+    body = `<div class="big">${live ? "👑 " : "🏆 "}${w}</div><div class="sub"><span class="${cls(x.rows[0].pct)}">${fmtPct(x.rows[0].pct)}</span> in £ · ` +
+      (live ? `leading now – ${pl(pts, "point")} awarded at ${S.config.closeHHMM} UK${noun === "week" ? " on Friday" : ""}` : `+${pl(pts, "point")} awarded${tie}`) + `</div>`;
+  } else if (x.status === "waiting") {
+    body = `<div class="big">Waiting for markets</div><div class="sub">Not enough data yet to rank.</div>`;
+  } else body = `<div class="big">Markets closed</div><div class="sub">No trading – next points at the next close.</div>`;
+  return `<div class="card ${x.status === "live" ? "lead" : ""}"><div class="lbl"><span>${title}</span><span class="chip ${chip[1]}">${chip[0]}</span></div>${body}</div>`;
+}
+
+function renderHero() {
+  const t = S.today, pv = S.previous, wk = S.week, c = S.config;
+  const today = winnerCard(`Today · ${fmtDate(t.date)}`, t, c.points, "day");
+  const week = winnerCard(`This week · w/c ${fmtShort(wk.monday)}`, wk, c.weekPoints, "week");
+  const prev = pv
+    ? `<div class="card"><div class="lbl"><span>Yesterday's winner · ${fmtDate(pv.date)}</span><span class="chip final">+${pl(pv.pts, "PT").replace("PTs", "PTS")}</span></div><div class="big">🏆 ${pv.winners.map(nameOf).join(" & ")}</div><div class="sub"><span class="${cls(pv.rows[0].pct)}">${fmtPct(pv.rows[0].pct)}</span> in £${pv.winners.length > 1 ? " · tie, points shared" : ""}</div></div>`
     : `<div class="card"><div class="lbl"><span>Yesterday's winner</span></div><div class="big">—</div><div class="sub">First points are awarded at the first close.</div></div>`;
-  $("#hero").innerHTML = left + right;
+  $("#hero").innerHTML = today + prev + week;
 }
 
 function renderCards() {
@@ -158,24 +171,34 @@ function renderCards() {
   }).join("");
 }
 
-function renderBoard() {
-  const c = S.config;
-  $("#rules").textContent = `1 pt per day · Friday close = ${c.fridayPoints} pts · ties share · awarded ${c.closeHHMM} UK`;
-  const medals = { 1: "🥇", 2: "🥈", 3: "🥉" };
-  $("#board").innerHTML = `<tr><th>#</th><th>Player</th><th class="n">Wins</th><th class="n">Points</th></tr>` + S.leaderboard.map((b) => {
-    const p = P(b.id);
-    return `<tr><td>${medals[b.rank] || b.rank}</td><td><span class="name"><span class="sw" style="background:${p.colour}"></span>${p.person} <span class="sub" style="font-weight:500">${p.company}</span></span></td><td class="n">${b.wins}</td><td class="n pts">${b.points}</td></tr>`;
-  }).join("");
-
-  const days = showAllDays ? S.days : S.days.slice(0, 10), ids = S.config.players.map((p) => p.id);
-  $("#days").innerHTML = `<tr><th>Date</th><th>Winner</th><th class="n">Pts</th>${ids.map((i) => `<th class="n">${P(i).person}</th>`).join("")}</tr>` + days.map((d) => {
+function resultRows(items, ids, first) {
+  return items.map((d) => {
     const cells = ids.map((id) => {
       const r = d.rows.find((x) => x.id === id);
       return `<td class="n ${r ? cls(r.pct) : "flat"}">${r ? (d.winners.includes(id) ? "🏆 " : "") + fmtPct(r.pct) : "–"}</td>`;
     }).join("");
     const w = d.winners.length ? d.winners.map((id) => P(id).person).join(" & ") : "–";
-    return `<tr><td>${fmtDate(d.date)}${d.final ? "" : '<span class="tag">live</span>'}</td><td>${w}</td><td class="n">${d.final && d.winners.length ? "+" + d.pts : "–"}</td>${cells}</tr>`;
+    return `<tr>${first(d)}<td>${w}</td><td class="n">${d.final && d.winners.length ? "+" + d.pts : "–"}</td>${cells}</tr>`;
   }).join("");
+}
+
+function renderBoard() {
+  const c = S.config, ids = c.players.map((p) => p.id), medals = { 1: "🥇", 2: "🥈", 3: "🥉" };
+  $("#rules").textContent = `${pl(c.points, "pt")} best day · ${pl(c.weekPoints, "pt")} best week (Friday) · ties share · awarded ${c.closeHHMM} UK · max ${c.points + c.weekPoints} in a day`;
+
+  $("#board").innerHTML = `<tr><th>#</th><th>Player</th><th class="n">Day wins</th><th class="n">Week wins</th><th class="n">Points</th></tr>` + S.leaderboard.map((b) => {
+    const p = P(b.id);
+    return `<tr><td>${b.points > 0 ? (medals[b.rank] || b.rank) : "–"}</td><td><span class="name"><span class="sw" style="background:${p.colour}"></span>${p.person} <span class="sub" style="font-weight:500">${p.company}</span></span></td>
+      <td class="n">${b.dayWins}<div class="sub">${b.dayPoints} pts</div></td><td class="n">${b.weekWins}<div class="sub">${b.weekPoints} pts</div></td><td class="n pts">${b.points}</td></tr>`;
+  }).join("");
+
+  const th = ids.map((i) => `<th class="n">${P(i).person}</th>`).join("");
+  $("#weeks").innerHTML = `<tr><th>Week</th><th>Winner</th><th class="n">Pts</th>${th}</tr>` +
+    resultRows(S.weeks, ids, (w) => `<td>${fmtShort(w.monday)} – ${fmtShort(w.friday)}${w.final ? "" : '<span class="tag">live</span>'}</td>`);
+
+  const days = showAllDays ? S.days : S.days.slice(0, 10);
+  $("#days").innerHTML = `<tr><th>Date</th><th>Winner</th><th class="n">Pts</th>${th}</tr>` +
+    resultRows(days, ids, (d) => `<td>${fmtDate(d.date)}${d.final ? "" : '<span class="tag">live</span>'}</td>`);
   $("#moreDays").innerHTML = S.days.length > 10 ? `<button id="toggleDays">${showAllDays ? "Show fewer" : "Show all " + S.days.length + " days"}</button>` : "";
   const b = $("#toggleDays"); if (b) b.onclick = () => { showAllDays = !showAllDays; renderBoard(); };
 }
