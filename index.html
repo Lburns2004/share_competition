@@ -46,8 +46,9 @@ button.leg{display:flex;gap:6px;align-items:center}button.leg.off{opacity:.35}
 .errbar{display:none;background:#ff5d7a22;border:1px solid var(--down);color:#ffc2cc;padding:10px 14px;border-radius:10px;margin-bottom:14px;font-size:13px}
 .hero{display:grid;grid-template-columns:1.7fr 1fr;grid-template-rows:auto 1fr;gap:14px}
 .hero .today{grid-row:1 / span 2;padding:24px}
-.hero .week{grid-column:2;grid-row:1}
-.hero .prev{grid-column:2;grid-row:2}
+.hero .prev{grid-column:2;grid-row:1}
+.hero .week{grid-column:2;grid-row:2}
+.hero .prev .big,.hero .week .big{font-size:20px}
 .today .big{font-size:42px;line-height:1.1;margin:14px 0 6px}.today .sub{font-size:15px}
 .today .lbl{font-size:12px}
 .rank{margin-top:18px;border-top:1px solid #ffffff14;padding-top:10px}
@@ -62,7 +63,7 @@ button.leg{display:flex;gap:6px;align-items:center}button.leg.off{opacity:.35}
 <div class="wrap">
   <header>
     <h1>Share Race 🏁<small>WSP · Jacobs · Veolia · Colliers &nbsp;|&nbsp; all prices in £</small></h1>
-    <div class="status"><span class="dot" id="dot"></span><span id="upd">Loading…</span><br><span id="clock"></span></div>
+    <div class="status"><span class="dot" id="dot"></span><span id="upd">Loading…</span><br><span id="clock"></span><br><span style="opacity:.45">layout v5</span></div>
   </header>
   <div class="errbar" id="err"></div>
 
@@ -167,7 +168,7 @@ function renderHero() {
   const prev = pv
     ? `<div class="card prev"><div class="lbl"><span>Yesterday's winner · ${fmtDate(pv.date)}</span><span class="chip final">+${pl(pv.pts, "PT").replace("PTs", "PTS")}</span></div><div class="big">🏆 ${pv.winners.map(nameOf).join(" & ")}</div><div class="sub"><span class="${cls(pv.rows[0].pct)}">${fmtPct(pv.rows[0].pct)}</span> in £${pv.winners.length > 1 ? " · tie, points shared" : ""}</div></div>`
     : `<div class="card prev"><div class="lbl"><span>Yesterday's winner</span></div><div class="big">—</div><div class="sub">First points are awarded at the first close.</div></div>`;
-  $("#hero").innerHTML = today + week + prev;
+  $("#hero").innerHTML = today + prev + week;
 }
 
 function renderCards() {
