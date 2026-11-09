@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Share Showdown</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap top-inner">
+    <div>
+      <h1 id="title">Share Showdown</h1>
+      <div class="muted" id="updated">Loading…</div>
+    </div>
+    <nav>
+      <a href="#live">Live</a><a href="#leaderboard">Leaderboard</a><a href="#value">Value added</a><a href="#charts">Charts</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="error" class="notice" hidden></div>
+
+  <section id="winners" class="winners"></section>
+
+  <section id="live">
+    <h2>Live prices <small>all in £</small></h2>
+    <div id="cards" class="cards"></div>
+  </section>
+
+  <section id="leaderboard">
+    <h2>Leaderboard <small id="lb-note"></small></h2>
+    <div class="panel"><table id="standings"></table></div>
+    <h3>Daily results</h3>
+    <div class="panel scroll"><table id="days"></table></div>
+    <p class="muted small" id="rules"></p>
+  </section>
+
+  <section id="value">
+    <h2>Value added <small>share price change since start, in £</small></h2>
+    <div class="panel scroll"><table id="valuetbl"></table></div>
+    <p class="muted small">Total £ change = share price move in local currency combined with the currency effect (how the local currency moved against the pound since the start date). Dividends are not included.</p>
+  </section>
+
+  <section id="charts">
+    <h2>Charts</h2>
+    <div class="controls">
+      <div class="seg" id="ranges"></div>
+      <div class="seg" id="modes">
+        <button data-mode="pct" class="on">% change</button><button data-mode="gbp">£ price</button>
+      </div>
+    </div>
+    <div id="legend" class="legend"></div>
+    <div class="panel chartbox"><canvas id="chart"></canvas></div>
+    <p class="muted small" id="chartnote"></p>
+  </section>
+</main>
+<footer class="wrap muted small">Prices from Yahoo Finance (may be delayed). Converted to £ using live FX rates. Not investment advice.</footer>
+<script src="app.js"></script>
+</body>
+</html>
