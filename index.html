@@ -44,6 +44,17 @@ button.leg{display:flex;gap:6px;align-items:center}button.leg.off{opacity:.35}
 .sp{flex:1}.chartbox{height:420px;position:relative}
 .note{font-size:12px;color:var(--mute);margin-top:10px;line-height:1.6}
 .errbar{display:none;background:#ff5d7a22;border:1px solid var(--down);color:#ffc2cc;padding:10px 14px;border-radius:10px;margin-bottom:14px;font-size:13px}
+.hero{display:grid;grid-template-columns:1.7fr 1fr;grid-template-rows:auto 1fr;gap:14px}
+.hero .today{grid-row:1 / span 2;padding:24px}
+.hero .week{grid-column:2;grid-row:1}
+.hero .prev{grid-column:2;grid-row:2}
+.today .big{font-size:42px;line-height:1.1;margin:14px 0 6px}.today .sub{font-size:15px}
+.today .lbl{font-size:12px}
+.rank{margin-top:18px;border-top:1px solid #ffffff14;padding-top:10px}
+.rank div{display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:15px}
+.rank div+div{border-top:1px solid #ffffff0a}
+.rank .name{font-weight:600}
+@media(max-width:760px){.hero{grid-template-columns:1fr;grid-template-rows:auto}.hero .today,.hero .week,.hero .prev{grid-column:1;grid-row:auto}.today .big{font-size:32px}}
 @media(max-width:600px){h1{font-size:24px}.price{font-size:24px}.chartbox{height:320px}}
 </style>
 </head>
@@ -55,7 +66,7 @@ button.leg{display:flex;gap:6px;align-items:center}button.leg.off{opacity:.35}
   </header>
   <div class="errbar" id="err"></div>
 
-  <div class="grid g2" id="hero"></div>
+  <div class="hero" id="hero"></div>
 
   <h2>Live prices <small>change vs previous close, in £</small></h2>
   <div class="grid g4" id="cards"></div>
@@ -134,8 +145,7 @@ function spark(live) {
   return `<svg class="spark" viewBox="0 0 ${W} ${Ht}" preserveAspectRatio="none"><line x1="0" x2="${W}" y1="${y(live.prevGBP)}" y2="${y(live.prevGBP)}" stroke="#ffffff40" stroke-dasharray="3 3"/><polyline fill="none" stroke="${col}" stroke-width="1.8" vector-effect="non-scaling-stroke" points="${pts}"/></svg>`;
 }
 
-function winnerCard(title, x, pts, noun) {
-  // x = {status, date/monday, rows, winners}
+function winnerCard(title, x, pts, noun, klass, ranking) {
   const chip = { live: ["LIVE", "live"], final: ["FINAL", "final"], waiting: ["WAITING", ""], closed: ["CLOSED", ""] }[x.status];
   let body;
   if (x.status === "live" || x.status === "final") {
@@ -143,20 +153,21 @@ function winnerCard(title, x, pts, noun) {
     const tie = x.winners.length > 1 ? " each (tie)" : "";
     body = `<div class="big">${live ? "👑 " : "🏆 "}${w}</div><div class="sub"><span class="${cls(x.rows[0].pct)}">${fmtPct(x.rows[0].pct)}</span> in £ · ` +
       (live ? `leading now – ${pl(pts, "point")} awarded at ${S.config.closeHHMM} UK${noun === "week" ? " on Friday" : ""}` : `+${pl(pts, "point")} awarded${tie}`) + `</div>`;
+    if (ranking) body += `<div class="rank">` + x.rows.map((r, i) => `<div><span class="name"><span class="sw" style="background:${P(r.id).colour}"></span>${i + 1}. ${P(r.id).person} <span class="sub">${P(r.id).company}</span></span><span class="${cls(r.pct)}">${fmtPct(r.pct)}</span></div>`).join("") + `</div>`;
   } else if (x.status === "waiting") {
     body = `<div class="big">Waiting for markets</div><div class="sub">Not enough data yet to rank.</div>`;
   } else body = `<div class="big">Markets closed</div><div class="sub">No trading – next points at the next close.</div>`;
-  return `<div class="card ${x.status === "live" ? "lead" : ""}"><div class="lbl"><span>${title}</span><span class="chip ${chip[1]}">${chip[0]}</span></div>${body}</div>`;
+  return `<div class="card ${klass} ${x.status === "live" ? "lead" : ""}"><div class="lbl"><span>${title}</span><span class="chip ${chip[1]}">${chip[0]}</span></div>${body}</div>`;
 }
 
 function renderHero() {
   const t = S.today, pv = S.previous, wk = S.week, c = S.config;
-  const today = winnerCard(`Today · ${fmtDate(t.date)}`, t, c.points, "day");
-  const week = winnerCard(`This week · w/c ${fmtShort(wk.monday)}`, wk, c.weekPoints, "week");
+  const today = winnerCard(`Today's winner · ${fmtDate(t.date)}`, t, c.points, "day", "today", true);
+  const week = winnerCard(`This week so far · w/c ${fmtShort(wk.monday)}`, wk, c.weekPoints, "week", "week", false);
   const prev = pv
-    ? `<div class="card"><div class="lbl"><span>Yesterday's winner · ${fmtDate(pv.date)}</span><span class="chip final">+${pl(pv.pts, "PT").replace("PTs", "PTS")}</span></div><div class="big">🏆 ${pv.winners.map(nameOf).join(" & ")}</div><div class="sub"><span class="${cls(pv.rows[0].pct)}">${fmtPct(pv.rows[0].pct)}</span> in £${pv.winners.length > 1 ? " · tie, points shared" : ""}</div></div>`
-    : `<div class="card"><div class="lbl"><span>Yesterday's winner</span></div><div class="big">—</div><div class="sub">First points are awarded at the first close.</div></div>`;
-  $("#hero").innerHTML = today + prev + week;
+    ? `<div class="card prev"><div class="lbl"><span>Yesterday's winner · ${fmtDate(pv.date)}</span><span class="chip final">+${pl(pv.pts, "PT").replace("PTs", "PTS")}</span></div><div class="big">🏆 ${pv.winners.map(nameOf).join(" & ")}</div><div class="sub"><span class="${cls(pv.rows[0].pct)}">${fmtPct(pv.rows[0].pct)}</span> in £${pv.winners.length > 1 ? " · tie, points shared" : ""}</div></div>`
+    : `<div class="card prev"><div class="lbl"><span>Yesterday's winner</span></div><div class="big">—</div><div class="sub">First points are awarded at the first close.</div></div>`;
+  $("#hero").innerHTML = today + week + prev;
 }
 
 function renderCards() {
