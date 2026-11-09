@@ -147,14 +147,9 @@ function renderHero() {
 }
 
 function renderCards() {
-  const order = S.today.rows.length ? S.today.rows.map((r) => r.id) : [...S.live].sort((a, b) => b.pct - a.pct).map((l) => l.id);
-  const rest = S.live.filter((l) => !order.includes(l.id)).map((l) => l.id);
-  const medals = ["🥇", "🥈", "🥉", "4️⃣"];
-  $("#cards").innerHTML = order.concat(rest).map((id, i) => {
-    const l = S.live.find((x) => x.id === id), p = P(id);
-    const ranked = S.today.rows.some((r) => r.id === id);
-    const leading = ranked && S.today.winners.includes(id) && ["live", "final"].includes(S.today.status);
-    return `<div class="card ${leading ? "lead" : ""}"><span class="badge">${ranked ? medals[i] : ""}</span>
+  $("#cards").innerHTML = S.live.map((l) => {
+    const p = P(l.id);
+    return `<div class="card">
       <div class="name"><span class="sw" style="background:${p.colour}"></span>${p.person}<span class="sub" style="font-weight:500">· ${p.company}</span></div>
       <div class="price">${fmtGBP(l.priceGBP)}</div>
       <div class="chg ${cls(l.pct)}">${fmtPct(l.pct)} <span style="font-weight:500">(${l.chg >= 0 ? "+" : "−"}${fmtGBP(Math.abs(l.chg))})</span>
