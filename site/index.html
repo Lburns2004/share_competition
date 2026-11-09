@@ -3,60 +3,263 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Share Showdown</title>
-<link rel="stylesheet" href="style.css">
+<title>Share Race 🏁</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0b1020;--card:#141b34;--card2:#1b2445;--line:#27325c;--text:#eef1ff;--mute:#8e9bc9;--up:#2ee6a6;--down:#ff5d7a;--gold:#ffd166}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Segoe UI,system-ui,sans-serif;background:radial-gradient(1200px 600px at 10% -10%,#1d2a5e55,transparent),var(--bg);color:var(--text)}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 60px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:18px}
+h1{margin:0;font-size:30px;letter-spacing:-.5px} h1 small{display:block;font-size:13px;font-weight:500;color:var(--mute);letter-spacing:0;margin-top:4px}
+h2{margin:34px 0 12px;font-size:18px;display:flex;align-items:center;gap:8px} h2 small{color:var(--mute);font-weight:500;font-size:12px}
+.status{font-size:12px;color:var(--mute);text-align:right;line-height:1.6}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--up);margin-right:6px;box-shadow:0 0 8px var(--up);animation:p 2s infinite}
+.dot.err{background:var(--down);box-shadow:0 0 8px var(--down)}
+@keyframes p{50%{opacity:.35}}
+.grid{display:grid;gap:14px}.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}.g4{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.card{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:16px;padding:16px;position:relative;overflow:hidden}
+.card.lead{border-color:var(--gold);box-shadow:0 0 0 1px #ffd16655,0 8px 30px #ffd16618}
+.lbl{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);display:flex;justify-content:space-between;align-items:center}
+.chip{font-size:10px;padding:3px 8px;border-radius:99px;background:#ffffff14;letter-spacing:.8px}
+.chip.live{background:#2ee6a622;color:var(--up)}.chip.final{background:#ffd16622;color:var(--gold)}
+.big{font-size:24px;font-weight:700;margin:8px 0 2px}.sub{color:var(--mute);font-size:13px}
+.up{color:var(--up)}.down{color:var(--down)}.flat{color:var(--mute)}
+.name{display:flex;align-items:center;gap:8px;font-weight:700}.sw{width:10px;height:10px;border-radius:3px}
+.price{font-size:28px;font-weight:800;margin:10px 0 0}.chg{font-size:14px;font-weight:600}
+.spark{width:100%;height:46px;margin-top:8px;display:block}
+.badge{position:absolute;top:12px;right:14px;font-size:20px}
+.tag{font-size:10px;color:var(--mute);border:1px solid var(--line);border-radius:6px;padding:1px 6px;margin-left:6px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:11px 10px;border-bottom:1px solid #ffffff0d}
+td.n,th.n{text-align:right}.pts{font-size:22px;font-weight:800}
+.scroll{overflow-x:auto}
+.bar{height:10px;border-radius:6px;background:#ffffff10;position:relative;margin:10px 0 8px}
+.bar i{position:absolute;top:0;bottom:0;border-radius:6px}.bar b{position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:#ffffff55}
+.split{display:flex;justify-content:space-between;font-size:12px;color:var(--mute);margin-top:4px}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center}
+button{font:inherit;font-size:13px;color:var(--text);background:#ffffff0f;border:1px solid var(--line);border-radius:9px;padding:7px 13px;cursor:pointer}
+button.on{background:#4c6fff;border-color:#4c6fff}
+button.leg{display:flex;gap:6px;align-items:center}button.leg.off{opacity:.35}
+.sp{flex:1}.chartbox{height:420px;position:relative}
+.note{font-size:12px;color:var(--mute);margin-top:10px;line-height:1.6}
+.errbar{display:none;background:#ff5d7a22;border:1px solid var(--down);color:#ffc2cc;padding:10px 14px;border-radius:10px;margin-bottom:14px;font-size:13px}
+@media(max-width:600px){h1{font-size:24px}.price{font-size:24px}.chartbox{height:320px}}
+</style>
 </head>
 <body>
-<header class="top">
-  <div class="wrap top-inner">
-    <div>
-      <h1 id="title">Share Showdown</h1>
-      <div class="muted" id="updated">Loading…</div>
-    </div>
-    <nav>
-      <a href="#live">Live</a><a href="#leaderboard">Leaderboard</a><a href="#value">Value added</a><a href="#charts">Charts</a>
-    </nav>
+<div class="wrap">
+  <header>
+    <h1>Share Race 🏁<small>WSP · Jacobs · Veolia · Colliers &nbsp;|&nbsp; all prices in £</small></h1>
+    <div class="status"><span class="dot" id="dot"></span><span id="upd">Loading…</span><br><span id="clock"></span></div>
+  </header>
+  <div class="errbar" id="err"></div>
+
+  <div class="grid g2" id="hero"></div>
+
+  <h2>Live prices <small>change vs previous close, in £</small></h2>
+  <div class="grid g4" id="cards"></div>
+
+  <h2>🏆 Leaderboard <small id="rules"></small></h2>
+  <div class="card scroll"><table id="board"></table></div>
+  <h2>Daily results <small>last 10 sessions</small></h2>
+  <div class="card scroll"><table id="days"></table><div class="note" id="moreDays"></div></div>
+
+  <h2>💷 Value added <small>% change in £ since each person started</small></h2>
+  <div class="grid g4" id="value"></div>
+  <div class="note">Total in £ = share-price move × currency move. Baseline is the last close before the start date, so the start-day move counts. “Currency” is the gain/loss from CAD/USD/EUR moving against £.</div>
+
+  <h2>📈 Charts</h2>
+  <div class="card">
+    <div class="ctrl" id="ranges"></div>
+    <div class="ctrl"><button id="modePct" class="on">% change</button><button id="modeGbp">Price £</button><span class="sp"></span><span id="legend" class="ctrl" style="margin:0"></span></div>
+    <div class="chartbox"><canvas id="chart"></canvas></div>
+    <div class="note" id="chartNote"></div>
   </div>
-</header>
+</div>
 
-<main class="wrap">
-  <div id="error" class="notice" hidden></div>
+<script>
+/* ======================= YOUR WORKER URL ======================= */
+const API = "https://share-race.mn22lb.workers.dev";
+/* ================================================================== */
 
-  <section id="winners" class="winners"></section>
+const $ = (s) => document.querySelector(s);
+const fmtGBP = (n) => "£" + n.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtPct = (n, dp = 2) => (n > 0 ? "+" : "") + n.toFixed(dp) + "%";
+const cls = (n) => (n > 0 ? "up" : n < 0 ? "down" : "flat");
+const fmtDate = (d) => new Date(d + "T12:00:00Z").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+const fmtLong = (d) => new Date(d + "T12:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 
-  <section id="live">
-    <h2>Live prices <small>all in £</small></h2>
-    <div id="cards" class="cards"></div>
-  </section>
+let S = null, chart = null, range = "1y", mode = "pct", showAllDays = false;
+const H = {}, hidden = new Set();
+const P = (id) => S.config.players.find((p) => p.id === id);
+const nameOf = (id) => `${P(id).person} (${P(id).company})`;
 
-  <section id="leaderboard">
-    <h2>Leaderboard <small id="lb-note"></small></h2>
-    <div class="panel"><table id="standings"></table></div>
-    <h3>Daily results</h3>
-    <div class="panel scroll"><table id="days"></table></div>
-    <p class="muted small" id="rules"></p>
-  </section>
+/* ------------------------------ data loading ------------------------------ */
+async function loadState() {
+  try {
+    const r = await fetch(API + "/api/state");
+    const j = await r.json();
+    if (!r.ok || j.error) throw new Error(j.error || "HTTP " + r.status);
+    S = j; renderAll(); if (!chart) drawChart();
+    $("#err").style.display = "none"; $("#dot").classList.remove("err");
+    $("#upd").textContent = "Updated " + new Date().toLocaleTimeString("en-GB");
+  } catch (e) {
+    $("#dot").classList.add("err");
+    $("#err").style.display = "block";
+    $("#err").textContent = "Couldn't refresh prices (" + e.message + "). Showing the last data we had – retrying automatically.";
+  }
+}
+async function loadHistory(r) {
+  if (H[r]) return H[r];
+  const res = await fetch(API + "/api/history?range=" + r);
+  const j = await res.json();
+  if (!res.ok || j.error) throw new Error(j.error || "HTTP " + res.status);
+  return (H[r] = j);
+}
 
-  <section id="value">
-    <h2>Value added <small>share price change since start, in £</small></h2>
-    <div class="panel scroll"><table id="valuetbl"></table></div>
-    <p class="muted small">Total £ change = share price move in local currency combined with the currency effect (how the local currency moved against the pound since the start date). Dividends are not included.</p>
-  </section>
+/* -------------------------------- rendering -------------------------------- */
+function spark(live) {
+  const v = live.spark; if (!v || v.length < 2) return "";
+  const all = v.concat([live.prevGBP]), mn = Math.min(...all), mx = Math.max(...all), W = 200, Ht = 46;
+  const y = (n) => (mx === mn ? Ht / 2 : Ht - 3 - ((n - mn) / (mx - mn)) * (Ht - 6));
+  const pts = v.map((n, i) => `${((i / (v.length - 1)) * W).toFixed(1)},${y(n).toFixed(1)}`).join(" ");
+  const col = live.pct >= 0 ? "#2ee6a6" : "#ff5d7a";
+  return `<svg class="spark" viewBox="0 0 ${W} ${Ht}" preserveAspectRatio="none"><line x1="0" x2="${W}" y1="${y(live.prevGBP)}" y2="${y(live.prevGBP)}" stroke="#ffffff40" stroke-dasharray="3 3"/><polyline fill="none" stroke="${col}" stroke-width="1.8" vector-effect="non-scaling-stroke" points="${pts}"/></svg>`;
+}
 
-  <section id="charts">
-    <h2>Charts</h2>
-    <div class="controls">
-      <div class="seg" id="ranges"></div>
-      <div class="seg" id="modes">
-        <button data-mode="pct" class="on">% change</button><button data-mode="gbp">£ price</button>
-      </div>
-    </div>
-    <div id="legend" class="legend"></div>
-    <div class="panel chartbox"><canvas id="chart"></canvas></div>
-    <p class="muted small" id="chartnote"></p>
-  </section>
-</main>
-<footer class="wrap muted small">Prices from Yahoo Finance (may be delayed). Converted to £ using live FX rates. Not investment advice.</footer>
-<script src="app.js"></script>
+function renderHero() {
+  const t = S.today, pv = S.previous;
+  const lbl = { live: ["LIVE", "live"], final: ["FINAL", "final"], waiting: ["WAITING", ""], closed: ["CLOSED", ""] }[t.status];
+  let body;
+  if (t.status === "live" || t.status === "final") {
+    const w = t.winners.map(nameOf).join(" & ");
+    body = `<div class="big">${t.status === "live" ? "👑 " : "🏆 "}${w}</div><div class="sub"><span class="${cls(t.rows[0].pct)}">${fmtPct(t.rows[0].pct)}</span> in £ · ${t.status === "live" ? `leading now – ${S.config.points === t.pts ? "1 point" : t.pts + " points"} awarded at ${S.config.closeHHMM} UK` : `+${t.pts} point${t.pts > 1 ? "s" : ""} awarded${t.winners.length > 1 ? " each (tie)" : ""}`}</div>`;
+  } else if (t.status === "waiting") {
+    body = `<div class="big">Waiting for markets</div><div class="sub">Not enough markets open yet to rank today.</div>`;
+  } else body = `<div class="big">Markets closed</div><div class="sub">No trading today – next points at the next close.</div>`;
+  const left = `<div class="card ${t.status === "live" ? "lead" : ""}"><div class="lbl"><span>Today · ${fmtDate(t.date)}</span><span class="chip ${lbl[1]}">${lbl[0]}</span></div>${body}</div>`;
+  const right = pv
+    ? `<div class="card"><div class="lbl"><span>Yesterday's winner · ${fmtDate(pv.date)}</span><span class="chip final">+${pv.pts} PT${pv.pts > 1 ? "S" : ""}</span></div><div class="big">🏆 ${pv.winners.map(nameOf).join(" & ")}</div><div class="sub"><span class="${cls(pv.rows[0].pct)}">${fmtPct(pv.rows[0].pct)}</span> in £${pv.winners.length > 1 ? " · tie, points shared" : ""}</div></div>`
+    : `<div class="card"><div class="lbl"><span>Yesterday's winner</span></div><div class="big">—</div><div class="sub">First points are awarded at the first close.</div></div>`;
+  $("#hero").innerHTML = left + right;
+}
+
+function renderCards() {
+  const order = S.today.rows.length ? S.today.rows.map((r) => r.id) : [...S.live].sort((a, b) => b.pct - a.pct).map((l) => l.id);
+  const rest = S.live.filter((l) => !order.includes(l.id)).map((l) => l.id);
+  const medals = ["🥇", "🥈", "🥉", "4️⃣"];
+  $("#cards").innerHTML = order.concat(rest).map((id, i) => {
+    const l = S.live.find((x) => x.id === id), p = P(id);
+    const ranked = S.today.rows.some((r) => r.id === id);
+    const leading = ranked && S.today.winners.includes(id) && ["live", "final"].includes(S.today.status);
+    return `<div class="card ${leading ? "lead" : ""}"><span class="badge">${ranked ? medals[i] : ""}</span>
+      <div class="name"><span class="sw" style="background:${p.colour}"></span>${p.person}<span class="sub" style="font-weight:500">· ${p.company}</span></div>
+      <div class="price">${fmtGBP(l.priceGBP)}</div>
+      <div class="chg ${cls(l.pct)}">${fmtPct(l.pct)} <span style="font-weight:500">(${l.chg >= 0 ? "+" : "−"}${fmtGBP(Math.abs(l.chg))})</span>
+        ${l.open ? '<span class="tag">market open</span>' : '<span class="tag">' + (l.isToday ? "closed" : "last close " + fmtDate(l.barDate)) + "</span>"}</div>
+      ${spark(l)}</div>`;
+  }).join("");
+}
+
+function renderBoard() {
+  const c = S.config;
+  $("#rules").textContent = `1 pt per day · Friday close = ${c.fridayPoints} pts · ties share · awarded ${c.closeHHMM} UK`;
+  const medals = { 1: "🥇", 2: "🥈", 3: "🥉" };
+  $("#board").innerHTML = `<tr><th>#</th><th>Player</th><th class="n">Wins</th><th class="n">Points</th></tr>` + S.leaderboard.map((b) => {
+    const p = P(b.id);
+    return `<tr><td>${medals[b.rank] || b.rank}</td><td><span class="name"><span class="sw" style="background:${p.colour}"></span>${p.person} <span class="sub" style="font-weight:500">${p.company}</span></span></td><td class="n">${b.wins}</td><td class="n pts">${b.points}</td></tr>`;
+  }).join("");
+
+  const days = showAllDays ? S.days : S.days.slice(0, 10), ids = S.config.players.map((p) => p.id);
+  $("#days").innerHTML = `<tr><th>Date</th><th>Winner</th><th class="n">Pts</th>${ids.map((i) => `<th class="n">${P(i).person}</th>`).join("")}</tr>` + days.map((d) => {
+    const cells = ids.map((id) => {
+      const r = d.rows.find((x) => x.id === id);
+      return `<td class="n ${r ? cls(r.pct) : "flat"}">${r ? (d.winners.includes(id) ? "🏆 " : "") + fmtPct(r.pct) : "–"}</td>`;
+    }).join("");
+    const w = d.winners.length ? d.winners.map((id) => P(id).person).join(" & ") : "–";
+    return `<tr><td>${fmtDate(d.date)}${d.final ? "" : '<span class="tag">live</span>'}</td><td>${w}</td><td class="n">${d.final && d.winners.length ? "+" + d.pts : "–"}</td>${cells}</tr>`;
+  }).join("");
+  $("#moreDays").innerHTML = S.days.length > 10 ? `<button id="toggleDays">${showAllDays ? "Show fewer" : "Show all " + S.days.length + " days"}</button>` : "";
+  const b = $("#toggleDays"); if (b) b.onclick = () => { showAllDays = !showAllDays; renderBoard(); };
+}
+
+function renderValue() {
+  const rows = [...S.value].sort((a, b) => b.totalPct - a.totalPct);
+  const mx = Math.max(10, ...rows.map((r) => Math.abs(r.totalPct)));
+  $("#value").innerHTML = rows.map((v, i) => {
+    const p = P(v.id), w = Math.min(50, (Math.abs(v.totalPct) / mx) * 50);
+    const bar = v.totalPct >= 0 ? `left:50%;width:${w}%;background:var(--up)` : `right:50%;width:${w}%;background:var(--down)`;
+    return `<div class="card"><div class="lbl"><span>#${i + 1}</span><span>since ${fmtLong(v.start)}</span></div>
+      <div class="name" style="margin-top:8px"><span class="sw" style="background:${p.colour}"></span>${p.person}<span class="sub" style="font-weight:500">· ${p.company}</span></div>
+      <div class="big ${cls(v.totalPct)}">${fmtPct(v.totalPct)}</div>
+      <div class="bar"><b></b><i style="${bar}"></i></div>
+      <div class="split"><span>Share price</span><span class="${cls(v.localPct)}">${fmtPct(v.localPct)}</span></div>
+      <div class="split"><span>Currency → £</span><span class="${cls(v.fxPct)}">${fmtPct(v.fxPct)}</span></div>
+      <div class="split"><span>${fmtGBP(v.baseGBP)} → ${fmtGBP(v.nowGBP)}</span><span>£1,000 → ${fmtGBP(1000 * (1 + v.totalPct / 100))}</span></div></div>`;
+  }).join("");
+}
+
+function renderAll() { renderHero(); renderCards(); renderBoard(); renderValue(); drawLegend(); }
+
+/* --------------------------------- charts ---------------------------------- */
+const RANGE_LABELS = [["1m", "1M"], ["3m", "3M"], ["6m", "6M"], ["1y", "1Y"], ["5y", "5Y"], ["max", "Max"]];
+$("#ranges").innerHTML = RANGE_LABELS.map(([k, l]) => `<button data-r="${k}" class="${k === range ? "on" : ""}">${l}</button>`).join("");
+$("#ranges").onclick = (e) => { const r = e.target.dataset.r; if (!r) return; range = r; [...$("#ranges").children].forEach((b) => b.classList.toggle("on", b.dataset.r === r)); drawChart(); };
+$("#modePct").onclick = () => setMode("pct"); $("#modeGbp").onclick = () => setMode("gbp");
+function setMode(m) { mode = m; $("#modePct").classList.toggle("on", m === "pct"); $("#modeGbp").classList.toggle("on", m === "gbp"); drawChart(); }
+
+function drawLegend() {
+  if (!S) return;
+  $("#legend").innerHTML = S.config.players.map((p) => `<button class="leg ${hidden.has(p.id) ? "off" : ""}" data-id="${p.id}"><span class="sw" style="background:${p.colour}"></span>${p.company}</button>`).join("");
+  $("#legend").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; const id = b.dataset.id; hidden.has(id) ? hidden.delete(id) : hidden.add(id); drawLegend(); drawChart(); };
+}
+
+async function drawChart() {
+  if (!S) return;
+  let h;
+  try { h = await loadHistory(range); } catch (e) { $("#chartNote").textContent = "Couldn't load chart data: " + e.message; return; }
+  const ser = h.series.filter((s) => !hidden.has(s.id) && s.data.length);
+  const start = mode === "pct" ? Math.max(0, ...ser.map((s) => s.data[0][0])) : 0;
+  const datasets = ser.map((s) => {
+    const d = s.data.filter((x) => x[0] >= start), base = d[0] ? d[0][1] : 1, p = P(s.id);
+    return { label: p.person + " – " + p.company, borderColor: p.colour, backgroundColor: p.colour, borderWidth: 2, pointRadius: 0, pointHoverRadius: 4, tension: 0.15,
+      data: d.map((x) => ({ x: x[0] * 1000, y: mode === "pct" ? (x[1] / base - 1) * 100 : x[1] })) };
+  });
+  const long = range === "5y" || range === "max";
+  const dfmt = (v) => new Date(v).toLocaleDateString("en-GB", long ? { month: "short", year: "2-digit" } : { day: "numeric", month: "short" });
+  if (chart) chart.destroy();
+  chart = new Chart($("#chart"), {
+    type: "line", data: { datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false, parsing: false, interaction: { mode: "nearest", axis: "x", intersect: false },
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { title: (i) => new Date(i[0].parsed.x).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
+          label: (c) => c.dataset.label + ": " + (mode === "pct" ? fmtPct(c.parsed.y) : fmtGBP(c.parsed.y)) } } },
+      scales: {
+        x: { type: "linear", ticks: { color: "#8e9bc9", maxTicksLimit: 7, callback: dfmt }, grid: { color: "#ffffff0d" } },
+        y: { ticks: { color: "#8e9bc9", callback: (v) => (mode === "pct" ? v.toFixed(0) + "%" : "£" + v) }, grid: { color: "#ffffff14" } },
+      },
+    },
+  });
+  $("#chartNote").textContent = mode === "pct"
+    ? "All lines start at 0% on the first date every selected stock has data. Prices converted to £ at the daily exchange rate."
+    : "Share prices converted to £ at the daily exchange rate.";
+}
+
+/* --------------------------------- startup --------------------------------- */
+function tickClock() {
+  const t = new Date().toLocaleTimeString("en-GB", { timeZone: "Europe/London" });
+  $("#clock").textContent = "UK time " + t + (S && S.today.status === "live" ? " · points at " + S.config.closeHHMM : "");
+}
+setInterval(tickClock, 1000); tickClock();
+
+(async () => {
+  await loadState(); drawChart();
+  setInterval(() => { if (document.visibilityState === "visible") loadState(); }, 30000);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") loadState(); });
+})();
+</script>
 </body>
 </html>
