@@ -160,7 +160,7 @@ function renderCards() {
 
 function renderBoard() {
   const c = S.config;
-  $("#rules").textContent = `1 pt per day · Friday close = ${c.fridayPoints} pts · ties share · awarded ${c.closeHHMM} UK`;
+  $("#rules").textContent = `1 pt per day · ties share · awarded ${c.closeHHMM} UK`;
   const medals = { 1: "🥇", 2: "🥈", 3: "🥉" };
   $("#board").innerHTML = `<tr><th>#</th><th>Player</th><th class="n">Wins</th><th class="n">Points</th></tr>` + S.leaderboard.map((b) => {
     const p = P(b.id);
